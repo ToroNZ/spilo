@@ -27,6 +27,7 @@ PROVIDER_OPENSTACK = "openstack"
 PROVIDER_LOCAL = "local"
 PROVIDER_UNSUPPORTED = "unsupported"
 USE_KUBERNETES = os.environ.get('KUBERNETES_SERVICE_HOST') is not None
+LOG_TO_STDERR = os.environ.get('LOG_STDERR') is not None
 KUBERNETES_DEFAULT_LABELS = '{"application": "spilo"}'
 MEMORY_LIMIT_IN_BYTES_PATH = '/sys/fs/cgroup/memory/memory.limit_in_bytes'
 
@@ -239,7 +240,7 @@ postgresql:
     archive_command: {{{postgresql.parameters.archive_command}}}
     shared_buffers: {{postgresql.parameters.shared_buffers}}
     logging_collector: 'on'
-    log_destination: csvlog
+    log_destination: {{LOG_PGDEST}}
     log_directory: ../pg_log
     log_filename: 'postgresql-%u.log'
     log_file_mode: '0644'
@@ -502,6 +503,8 @@ def get_placeholders(provider):
     placeholders.setdefault('LOG_S3_BUCKET', '')
     placeholders.setdefault('LOG_TMPDIR', os.path.abspath(os.path.join(placeholders['PGROOT'], '../tmp')))
     placeholders.setdefault('LOG_BUCKET_SCOPE_SUFFIX', '')
+    placeholders.setdefault('LOG_PGDEST', 'stderr'
+                            if LOG_TO_STDERR else 'csvlog')
 
     # see comment for wal-e bucket prefix
     placeholders.setdefault('LOG_BUCKET_SCOPE_PREFIX', '{0}-'.format(placeholders['NAMESPACE'])
